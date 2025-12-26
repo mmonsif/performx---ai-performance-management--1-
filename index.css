@@ -1,0 +1,18 @@
+/* index.css - minimal app styles (prevents 404 from missing stylesheet)
+   Note: Tailwind CDN is included in `index.html` for development only.
+   For production, follow Tailwind's installation guide and install it as a PostCSS plugin.
+*/
+
+/* Reset & base */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+body { margin: 0; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+/* Simple utility fixes used by the app */
+.no-scrollbar::-webkit-scrollbar { width: 0px; }
+.no-print { -webkit-print-color-adjust: exact; }
+
+/* You can add custom CSS or Tailwind-generated CSS here when setting up Tailwind properly */

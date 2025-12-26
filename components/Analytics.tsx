@@ -6,7 +6,8 @@ import {
 } from 'recharts';
 import { Employee } from '../types.ts';
 import { Sparkles, TrendingUp, Zap, Target, Loader2 } from 'lucide-react';
-import { GoogleGenAI } from "@google/genai";
+import { analyzeOrgSnapshot } from '../services/geminiService.ts';
+
 
 interface AnalyticsProps {
   employees: Employee[];
@@ -34,15 +35,10 @@ const Analytics: React.FC<AnalyticsProps> = ({ employees }) => {
 
   const handleAIAnalyze = async () => {
     setIsAnalyzing(true);
-    // Create a new GoogleGenAI instance right before making an API call for optimal context and key handling
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const snapshot = "Avg Performance 4.2/5, Goal completion 92%, Retention 95%";
     try {
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: "Analyze this organizational snapshot: Avg Performance 4.2/5, Goal completion 92%, Retention 95%. Provide a 2-sentence strategic outlook.",
-        config: { temperature: 0.5 }
-      });
-      setAiInsight(response.text || 'Solid growth trajectory confirmed.');
+      const response = await analyzeOrgSnapshot(snapshot);
+      setAiInsight(response || 'Solid growth trajectory confirmed.');
     } catch (e) {
       setAiInsight('Error generating insights.');
     }
