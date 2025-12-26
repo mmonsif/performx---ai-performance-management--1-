@@ -67,6 +67,25 @@ const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, employees, 
     reader.readAsDataURL(file);
   };
 
+  const saveIdentity = async () => {
+    setIsProcessing(true);
+    const newCfg = { ...config, companyName: companyNameDraft, companyLogo: localLogoDraft };
+    try {
+      // Support synchronous or async onUpdateConfig implementations
+      const maybePromise = onUpdateConfig(newCfg as SystemConfig as any);
+      if (maybePromise && typeof (maybePromise as any).then === 'function') {
+        await maybePromise;
+      }
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2000);
+    } catch (err) {
+      console.error('saveIdentity error', err);
+      alert('Failed to save identity. Changes are saved locally but may not persist to the server.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleAdminProfileSave = () => {
     if (!adminUser) return;
     setIsProcessing(true);
