@@ -192,8 +192,8 @@ CREATE POLICY "Public Write Config" ON config FOR ALL USING (true);`;
                 <label className="text-xs font-black text-slate-400 uppercase tracking-widest block">Logo</label>
                 <div className="relative group w-32 h-32 md:w-40 md:h-40">
                   <div className="w-full h-full bg-slate-50 rounded-[2rem] md:rounded-[2.5rem] border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden">
-                    {config.companyLogo ? (
-                      <img src={config.companyLogo} alt="Logo" className="w-full h-full object-cover" />
+                    {localLogoDraft ? (
+                      <img src={localLogoDraft} alt="Logo" className="w-full h-full object-cover" />
                     ) : (
                       <Building2 size={40} className="text-slate-300" />
                     )}
@@ -210,10 +210,16 @@ CREATE POLICY "Public Write Config" ON config FOR ALL USING (true);`;
                   <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Legal Name</label>
                   <input 
                     type="text"
-                    value={config.companyName}
-                    onChange={(e) => onUpdateConfig({...config, companyName: e.target.value})}
+                    value={companyNameDraft}
+                    onChange={(e) => setCompanyNameDraft(e.target.value)}
                     className="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 font-bold outline-none focus:ring-4 focus:ring-indigo-500/5 transition-all shadow-sm"
                   />
+                </div>
+                <div className="flex gap-3">
+                  <button onClick={saveIdentity} disabled={isProcessing} className={`px-6 py-3 rounded-xl font-black text-sm transition-all ${saveSuccess ? 'bg-emerald-500 text-white' : 'bg-slate-950 text-white hover:bg-indigo-600'}`}>
+                    {isProcessing ? 'Saving...' : saveSuccess ? 'Saved' : 'Save Identity'}
+                  </button>
+                  <button onClick={() => { setCompanyNameDraft(config.companyName || ''); setLocalLogoDraft(config.companyLogo || null); }} className="px-6 py-3 rounded-xl font-black text-sm bg-slate-50">Reset</button>
                 </div>
               </div>
             </div>
