@@ -22,12 +22,21 @@ const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, employees, 
   const [adminAvatar, setAdminAvatar] = useState(adminUser?.avatar || '');
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  // Identity draft states to prevent half-saved changes and allow explicit save
+  const [companyNameDraft, setCompanyNameDraft] = useState(config.companyName || '');
+  const [localLogoDraft, setLocalLogoDraft] = useState<string | null>(config.companyLogo || null);
+
   useEffect(() => {
     if (adminUser) {
       setAdminName(adminUser.name);
       setAdminAvatar(adminUser.avatar);
     }
   }, [adminUser]);
+
+  useEffect(() => {
+    setCompanyNameDraft(config.companyName || '');
+    setLocalLogoDraft(config.companyLogo || null);
+  }, [config]);
 
   const addDepartment = () => {
     if (newDept && !config.departments.includes(newDept)) {
@@ -44,11 +53,28 @@ const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, employees, 
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Limit size for inline data-URL uploads (avoid very large DB rows); suggest storing in object storage in future
+    const MAX_BYTES = 300 * 1024; // 300 KB
+    if (file.size > MAX_BYTES) {
+      alert('Logo is too large. Please choose an image smaller than 300 KB or optimize it.');
+      return;
+    }
+
     const reader = new FileReader();
     reader.onloadend = () => {
-      onUpdateConfig({ ...config, companyLogo: reader.result as string });
+      setLocalLogoDraft(reader.result as string);
     };
     reader.readAsDataURL(file);
+  };
+
+  const saveIdentity = () => {
+    setIsProcessing(true);
+    onUpdateConfig({ ...config, companyName: companyNameDraft, companyLogo: localLogoDraft });
+    setTimeout(() => {
+      setIsProcessing(false);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2000);
+    }, 600);
   };
 
   const handleAdminProfileSave = () => {
@@ -176,8 +202,8 @@ CREATE POLICY "Public Write Config" ON config FOR ALL USING (true);`;
                 <label className="text-xs font-black text-slate-400 uppercase tracking-widest block">Logo</label>
                 <div className="relative group w-32 h-32 md:w-40 md:h-40">
                   <div className="w-full h-full bg-slate-50 rounded-[2rem] md:rounded-[2.5rem] border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden">
-                    {config.companyLogo ? (
-                      <img src={config.companyLogo} alt="Logo" className="w-full h-full object-cover" />
+                    {localLogoDraft ? (
+                      <img src={localLogoDraft} alt="Logo" className="w-full h-full object-cover" />
                     ) : (
                       <Building2 size={40} className="text-slate-300" />
                     )}
@@ -194,10 +220,17 @@ CREATE POLICY "Public Write Config" ON config FOR ALL USING (true);`;
                   <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Legal Name</label>
                   <input 
                     type="text"
-                    value={config.companyName}
-                    onChange={(e) => onUpdateConfig({...config, companyName: e.target.value})}
+                    value={companyNameDraft}
+                    onChange={(e) => setCompanyNameDraft(e.target.value)}
                     className="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 font-bold outline-none focus:ring-4 focus:ring-indigo-500/5 transition-all shadow-sm"
                   />
+                </div>
+                <div className="flex gap-3">
+                  <button onClick={saveIdentity} disabled={isProcessing} className={`px-6 py-3 rounded-xl font-black text-sm transition-all ${saveSuccess ? 'bg-emerald-500 text-white' : 'bg-slate-950 text-white hover:bg-indigo-600'}`}>
+                    {isProcessing ? 'Saving...' : saveSuccess ? 'Saved' : 'Save Identity'}
+                  </button>
+                  <button onClick={() => { setCompanyNameDraft(config.companyName || ''); setLocalLogoDraft(config.companyLogo || null); }} className="px-6 py-3 rounded-xl font-black text-sm bg-slate-50">Reset</button>
+                </div>
                 </div>
               </div>
             </div>

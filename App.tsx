@@ -188,8 +188,12 @@ const App: React.FC = () => {
   const updateConfig = async (newConfig: SystemConfig) => {
     setConfig(newConfig);
     setIsSyncing(true);
-    await syncConfigToSupabase(newConfig);
+    const { error } = await syncConfigToSupabase(newConfig);
     setIsSyncing(false);
+    if (error) {
+      console.error('Failed to persist config to Supabase:', error);
+      alert('Warning: Failed to persist config to server. Changes are saved locally but may not appear on other devices. Please check your network or Supabase settings.');
+    }
   };
 
   if (!currentUser) {
