@@ -53,9 +53,16 @@ const Settings: React.FC<SettingsProps> = ({ config, onUpdateConfig, employees, 
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Limit size for inline data-URL uploads (avoid very large DB rows); suggest storing in object storage in future
+    const MAX_BYTES = 300 * 1024; // 300 KB
+    if (file.size > MAX_BYTES) {
+      alert('Logo is too large. Please choose an image smaller than 300 KB or optimize it.');
+      return;
+    }
+
     const reader = new FileReader();
     reader.onloadend = () => {
-      onUpdateConfig({ ...config, companyLogo: reader.result as string });
+      setLocalLogoDraft(reader.result as string);
     };
     reader.readAsDataURL(file);
   };
