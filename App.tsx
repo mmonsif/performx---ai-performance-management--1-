@@ -118,10 +118,10 @@ const App: React.FC = () => {
   const [config, setConfig] = useState<SystemConfig>(() => {
     const saved = localStorage.getItem('performx_config');
     return saved ? JSON.parse(saved) : {
-      companyName: 'PerformX AI',
+      companyName: 'PerformX',
       companyLogo: null,
       departments: ['Engineering', 'Design', 'Marketing', 'Sales', 'HR', 'Operations'],
-      dashboardWidgets: { charts: true, stats: true, aiAudit: true }
+      dashboardWidgets: { charts: true, stats: true, aiAudit: false }
     };
   });
 

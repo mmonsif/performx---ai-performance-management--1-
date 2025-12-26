@@ -54,7 +54,7 @@ const Sidebar: React.FC<SidebarProps> = ({ user, config, onLogout }) => {
               {config.companyName || 'PerformX'}
             </span>
             <div className="text-[10px] text-indigo-400 font-bold uppercase tracking-widest mt-0.5 truncate max-w-[160px]">
-              {config.companyLogo ? 'Enterprise Panel' : 'Intelligence AI'}
+              {config.companyLogo ? 'Enterprise Panel' : 'Company Panel'}
             </div>
           </div>
         </div>
