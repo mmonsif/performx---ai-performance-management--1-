@@ -27,6 +27,10 @@ View your app in AI Studio: https://ai.studio/apps/drive/14cBX0a8llYxTJovxcuJz4V
 3. Run the app:
    `npm run dev`
 
+4. Identity & settings sync
+   - Identity changes (company name, logo) are saved to Supabase and will be visible to other browsers after a page refresh. If a save fails the UI will display a warning — check your network or Supabase settings.
+   - For large logos, the app enforces a 300 KB size limit when uploading images as data URLs. Consider storing logos in object storage for production.
+
 4. Exporting
    - Use the in-app export features (print / PDF / CSV) to export employee data or reports.
 
