@@ -19,20 +19,27 @@ const Dashboard: React.FC<DashboardProps> = ({ employees, config }) => {
   const [downloadSuccess, setDownloadSuccess] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(false);
 
-  const departmentData = [
-    { name: 'Eng', score: 4.5 },
-    { name: 'Design', score: 4.2 },
-    { name: 'Sales', score: 3.8 },
-    { name: 'HR', score: 4.1 },
-    { name: 'Mkt', score: 3.5 },
-  ];
+  // Compute department averages from real system data
+  const deptMap = employees.reduce((acc, emp) => {
+    const key = emp.department || 'Unknown';
+    if (!acc[key]) acc[key] = { name: key, scoreSum: 0, count: 0 };
+    acc[key].scoreSum += emp.performanceScore || 0;
+    acc[key].count += 1;
+    return acc;
+  }, {} as Record<string, { name: string; scoreSum: number; count: number }>);
 
-  const goalProgressData = [
-    { month: 'Jan', completed: 12 },
-    { month: 'Feb', completed: 18 },
-    { month: 'Mar', completed: 25 },
-    { month: 'Apr', completed: 20 },
-  ];
+  const departmentData = Object.values(deptMap).map(d => ({ name: d.name, score: +(d.scoreSum / d.count).toFixed(1) }));
+
+  // Compute monthly goal velocity from monthlyAssessments across employees
+  const monthOrder = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const monthCounts: Record<string, number> = {};
+  employees.forEach(emp => {
+    (emp.monthlyAssessments || []).forEach(ma => {
+      const m = ma.month.slice(0,3);
+      monthCounts[m] = (monthCounts[m] || 0) + 1;
+    });
+  });
+  const goalProgressData = monthOrder.slice(0,6).map(m => ({ month: m, completed: monthCounts[m] || 0 }));
 
   const COLORS = ['#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe', '#e0e7ff'];
 
@@ -59,8 +66,7 @@ const Dashboard: React.FC<DashboardProps> = ({ employees, config }) => {
   const quickActions = [
     { label: 'Add Employee', icon: UserPlus, color: 'text-blue-600', path: '/team' },
     { label: 'Start Review', icon: FileText, color: 'text-emerald-600', path: '/reviews' },
-    { label: 'Set Goal', icon: Target, color: 'text-indigo-600', path: '/goals' },
-    { label: 'Run AI Audit', icon: Zap, color: 'text-amber-600', path: '/analytics' },
+    { label: 'Set Goal', icon: Target, color: 'text-indigo-600', path: '/goals' }
   ];
 
   return (

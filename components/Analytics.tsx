@@ -5,45 +5,34 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend 
 } from 'recharts';
 import { Employee } from '../types.ts';
-import { Sparkles, TrendingUp, Zap, Target, Loader2 } from 'lucide-react';
-import { analyzeOrgSnapshot } from '../services/geminiService.ts';
-
+import { Sparkles, TrendingUp, Target } from 'lucide-react';
 
 interface AnalyticsProps {
   employees: Employee[];
 }
 
 const Analytics: React.FC<AnalyticsProps> = ({ employees }) => {
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [aiInsight, setAiInsight] = useState('');
+  // Compute system metrics from real data
+  const COLORS = ['#6366f1', '#8b5cf6', '#ec4899'];
+
+  const avgScore = employees.length ? employees.reduce((s, e) => s + e.performanceScore, 0) / employees.length : 0;
+  const allGoals = employees.flatMap(e => e.goals || []);
+  const avgGoalCompletion = allGoals.length ? allGoals.reduce((s, g) => s + (g.progress || 0), 0) / allGoals.length : 0;
+  const activeCount = employees.filter(e => e.isActive !== false).length;
+  const retention = employees.length ? Math.round((activeCount / employees.length) * 100) : 0;
 
   const radarData = [
-    { subject: 'Velocity', A: 120, B: 110, fullMark: 150 },
-    { subject: 'Quality', A: 98, B: 130, fullMark: 150 },
-    { subject: 'Collaboration', A: 86, B: 130, fullMark: 150 },
-    { subject: 'Mentorship', A: 99, B: 100, fullMark: 150 },
-    { subject: 'Innovation', A: 85, B: 90, fullMark: 150 },
-    { subject: 'Uptime', A: 65, B: 85, fullMark: 150 },
+    { subject: 'Performance', A: Math.round(avgScore * 20), fullMark: 100 },
+    { subject: 'Goal Completion', A: Math.round(avgGoalCompletion), fullMark: 100 },
+    { subject: 'Retention', A: retention, fullMark: 100 },
+    // Add placeholders for other system-derived metrics if available
   ];
 
   const pieData = [
-    { name: 'Exceeds', value: 35 },
-    { name: 'Meets', value: 45 },
-    { name: 'Developing', value: 20 },
+    { name: 'Exceeds', value: employees.filter(e => e.performanceScore >= 4.5).length },
+    { name: 'Meets', value: employees.filter(e => e.performanceScore >= 3.5 && e.performanceScore < 4.5).length },
+    { name: 'Developing', value: employees.filter(e => e.performanceScore < 3.5).length },
   ];
-  const COLORS = ['#6366f1', '#8b5cf6', '#ec4899'];
-
-  const handleAIAnalyze = async () => {
-    setIsAnalyzing(true);
-    const snapshot = "Avg Performance 4.2/5, Goal completion 92%, Retention 95%";
-    try {
-      const response = await analyzeOrgSnapshot(snapshot);
-      setAiInsight(response || 'Solid growth trajectory confirmed.');
-    } catch (e) {
-      setAiInsight('Error generating insights.');
-    }
-    setIsAnalyzing(false);
-  };
 
   return (
     <div className="p-8 space-y-8 animate-in fade-in duration-500">
@@ -74,22 +63,15 @@ const Analytics: React.FC<AnalyticsProps> = ({ employees }) => {
           </div>
         </div>
 
-        {/* AI Insight & Pie */}
+        {/* System Metrics & Pie */}
         <div className="space-y-8">
-          <div className="bg-slate-900 text-white p-8 rounded-3xl shadow-xl relative overflow-hidden group">
-            <Sparkles className="text-indigo-400 mb-4" />
-            <h3 className="text-xl font-bold mb-3">AI Org-Audit</h3>
-            <p className="text-slate-400 text-sm mb-6 leading-relaxed">
-              {aiInsight || "Leverage Gemini to analyze organizational patterns and predict talent flight risks."}
-            </p>
-            <button 
-              onClick={handleAIAnalyze}
-              disabled={isAnalyzing}
-              className="w-full py-3 bg-white text-slate-900 rounded-xl font-bold hover:bg-indigo-50 transition-all flex items-center justify-center gap-2"
-            >
-              {isAnalyzing ? <Loader2 size={18} className="animate-spin" /> : <Zap size={18} />}
-              {isAnalyzing ? 'Processing...' : 'Run Org Audit'}
-            </button>
+          <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+            <h3 className="text-xl font-bold mb-3">System Audit</h3>
+            <div className="grid grid-cols-1 gap-2">
+              <div className="text-sm text-slate-700">Average Performance Score: <span className="font-bold text-slate-900">{avgScore.toFixed(2)}/5</span></div>
+              <div className="text-sm text-slate-700">Average Goal Completion: <span className="font-bold text-slate-900">{avgGoalCompletion.toFixed(0)}%</span></div>
+              <div className="text-sm text-slate-700">Retention (Active): <span className="font-bold text-slate-900">{retention}%</span></div>
+            </div>
           </div>
 
           <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
@@ -108,7 +90,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ employees }) => {
               {pieData.map((d, i) => (
                 <div key={i} className="flex justify-between text-xs font-bold text-slate-600">
                   <span>{d.name}</span>
-                  <span>{d.value}%</span>
+                  <span>{d.value}</span>
                 </div>
               ))}
             </div>
