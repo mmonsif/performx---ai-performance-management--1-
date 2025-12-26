@@ -2,10 +2,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Employee, Absence, MonthlyAssessment, NoteEntry, PerformanceRating, SystemConfig } from '../types.ts';
-import { getAIPerformanceSummary, generateYTDReport } from '../services/geminiService.ts';
 import { 
   ChevronLeft, Mail, MapPin, Calendar, Star, 
-  Target, Sparkles, AlertCircle, Loader2, Save, StickyNote,
+  Target, AlertCircle, Save, StickyNote,
   UserX, TrendingUp, BookOpen, Plus, FileBarChart, CheckCircle, ShieldAlert,
   BarChart3, ArrowRight, X, Building, Download, Check, Send, FileDown, Edit3, KeyRound
 } from 'lucide-react';
@@ -25,13 +24,9 @@ const EmployeeDetail: React.FC<EmployeeDetailProps> = ({ employees, onUpdateEmpl
   const [activeTab, setActiveTab] = useState<'overview' | 'performance' | 'attendance' | 'notes' | 'report'>('overview');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
-  
-  // AI States
-  const [aiInsight, setAiInsight] = useState<string | null>(null);
-  const [isLoadingInsight, setIsLoadingInsight] = useState(false);
+  // YTD report placeholder (AI report generation was removed; keep a local state to avoid runtime errors)
   const [ytdReport, setYtdReport] = useState<string | null>(null);
-  const [isGeneratingYTD, setIsGeneratingYTD] = useState(false);
-
+  
   // Form States
   const [editForm, setEditForm] = useState({ name: '', role: '', email: '', department: '' });
   const [newPassword, setNewPassword] = useState('');
@@ -84,21 +79,9 @@ const EmployeeDetail: React.FC<EmployeeDetailProps> = ({ employees, onUpdateEmpl
     alert('Password updated successfully.');
   };
 
-  const handleGenerateInsight = async () => {
-    if (!employee) return;
-    setIsLoadingInsight(true);
-    const summary = await getAIPerformanceSummary(employee);
-    setAiInsight(summary || "Summary generated successfully.");
-    setIsLoadingInsight(false);
-  };
 
-  const handleGenerateYTD = async () => {
-    if (!employee) return;
-    setIsGeneratingYTD(true);
-    const report = await generateYTDReport(employee, orgBenchmarks);
-    setYtdReport(report || "Full strategic report prepared.");
-    setIsGeneratingYTD(false);
-  };
+
+
 
   const logMonthlyAssessment = () => {
     if (!employee || !monthlyFeedback) return;
@@ -338,54 +321,23 @@ const EmployeeDetail: React.FC<EmployeeDetailProps> = ({ employees, onUpdateEmpl
 
           {activeTab === 'report' && isManagerOrAdmin && (
             <div className="space-y-6 animate-in fade-in">
-              <section className="bg-slate-950 text-white p-8 md:p-12 rounded-[2rem] md:rounded-[3rem] shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl"></div>
-                <div className="relative z-10">
-                  <h2 className="text-2xl md:text-3xl font-black mb-4">Strategic Intelligence Brief</h2>
-                  <p className="text-slate-400 text-sm md:text-lg mb-8 leading-relaxed">Synthesize enterprise data into a constructive trajectory analysis vs company benchmarks.</p>
-                  <button 
-                    onClick={handleGenerateYTD} 
-                    disabled={isGeneratingYTD} 
-                    className="px-8 py-4 bg-white text-slate-950 rounded-2xl font-black flex items-center justify-center gap-2 text-sm md:text-base hover:bg-indigo-50 transition-all shadow-xl shadow-indigo-500/10"
-                  >
-                    {isGeneratingYTD ? <Loader2 className="animate-spin" /> : <Sparkles size={20} />}
-                    {isGeneratingYTD ? 'Analyzing Trends...' : 'Generate 2024 Brief'}
-                  </button>
+              <section className="bg-white p-6 md:p-8 rounded-[2rem] border border-slate-100 shadow-sm">
+                <h2 className="text-lg font-black text-slate-900 mb-4">Reports</h2>
+                <p className="text-slate-500 text-sm mb-6">AI-powered report generation has been removed. Use the export option to print or save employee data.</p>
+                <div className="flex gap-3">
+                  <button onClick={() => window.print()} className="px-6 py-3 bg-indigo-600 text-white rounded-2xl font-black">Export to PDF</button>
+                  <button onClick={() => alert('CSV export coming soon')} className="px-6 py-3 bg-slate-50 rounded-2xl font-black">Export CSV</button>
                 </div>
               </section>
-              {ytdReport && (
-                <div className="space-y-4">
-                  <div className="flex justify-end">
-                    <button 
-                      onClick={handleExportPDF}
-                      className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-2xl font-bold shadow-xl hover:bg-indigo-700 transition-all text-sm"
-                    >
-                      <FileDown size={18} /> Export Brief to PDF
-                    </button>
-                  </div>
-                  <div className="bg-white p-8 md:p-12 rounded-[2.5rem] md:rounded-[3rem] border border-slate-100 shadow-xl prose max-w-none font-medium text-slate-700 whitespace-pre-line leading-relaxed text-sm md:text-base">
-                    {ytdReport}
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </div>
 
         <div className="space-y-6 md:space-y-8">
-          <section className="bg-indigo-900 text-white p-6 md:p-8 rounded-[2rem] shadow-xl relative overflow-hidden group">
-            <div className="relative z-10 space-y-4">
-              <h3 className="text-lg font-bold flex items-center gap-2"><Sparkles size={18} className="text-indigo-300" /> AI Insights</h3>
-              {!aiInsight ? (
-                <div className="space-y-4">
-                  <p className="text-indigo-100 text-xs leading-relaxed opacity-80">Evaluate recent activity patterns for talent optimization.</p>
-                  <button onClick={handleGenerateInsight} disabled={isLoadingInsight} className="w-full py-3.5 bg-white text-indigo-900 rounded-xl font-black text-xs hover:bg-indigo-50 transition-all">
-                    {isLoadingInsight ? <Loader2 className="animate-spin mx-auto" /> : 'Run Quick Audit'}
-                  </button>
-                </div>
-              ) : (
-                <div className="text-indigo-100 text-xs whitespace-pre-line leading-relaxed italic pt-3 border-t border-indigo-800">"{aiInsight}"</div>
-              )}
+          <section className="bg-white p-6 md:p-8 rounded-[2rem] border border-slate-100 shadow-sm">
+            <div className="space-y-3">
+              <h3 className="text-lg font-bold">System Notes</h3>
+              <p className="text-sm text-slate-600">AI features have been removed from this installation. You can still export reports and use manual observations and assessments.</p>
             </div>
           </section>
 
